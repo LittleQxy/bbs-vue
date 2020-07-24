@@ -6,7 +6,7 @@
             background-color="white"
             text-color="#222"
             active-text-color="red"
-            style="min-width: 1300px"
+            style="min-width: 1000px"
             >
         <el-menu-item style="float: left"></el-menu-item>
         <el-menu-item v-for="(item,i) in navList" :key="i" :index="item.name" style="font-size: 18px">
