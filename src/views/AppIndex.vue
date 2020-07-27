@@ -106,7 +106,7 @@
                 },
                 publishData:[],
                 defaultType:1,
-                isPublish:false
+                isPublish:false,
             }
         },
         created() {
@@ -115,12 +115,14 @@
         ,
         methods:{
 
+
             getDetial(id,type){
                 this.$router.push({
                     name:'ArticleDetial',
                     query:{
                         id:id,
-                        type:type
+                        type:type,
+                        userid:this.userid
                     }
                 })
             },

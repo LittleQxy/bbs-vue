@@ -32,7 +32,8 @@
                 loginData:{
                     email: '',
                     password: ''
-                }
+                },
+                userToken:"",
             }
         },
         methods: {
@@ -54,7 +55,10 @@
                             }
                         ).then(res => {
                             if (res.data.code == 200) {
-                                this.$router.push({path: "/home"})
+                                this.userToken = res.data.data.token;
+                               this.$store.commit('changeLogin',this.userToken);
+                                this.$router.push({
+                                    name:"AppIndex"                                })
                             } else {
                                 alert(res.data.msg);
                             }

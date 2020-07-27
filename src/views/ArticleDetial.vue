@@ -61,7 +61,7 @@
                             placeholder="请输入你的评论"
                             v-model="conment">
                     </el-input>
-                    <el-button type="primary" >回复</el-button>
+                    <el-button type="primary"  @click="Reply">回复</el-button>
                 </div>
             </el-card>
         </div>
@@ -76,6 +76,7 @@
 </template>
 
 <script>
+    //import Vue from 'vue'
     export default {
         name: "ArticleDetial",
         data(){
@@ -100,17 +101,15 @@
                 },
                 conment:"",
                 id:"",
-                type:""
+                type:"",
             }
         },
         methods:{
             SearchData(){
                 this.id = this.$route.query.id;
                 this.type = this.$route.query.type;
-                this.$axios.post('/lose/detail',{
-                    id:this.id,
-                    type:this.type
-                }).then(res =>{
+                this.userid = this.$route.query.userid;
+                this.$axios.post('/detail/'+this.id+"/"+this.type).then(res =>{
                     if(res.data.code === 200){
                         this.article = res.data.data;
                         console.log(res.data.data)
@@ -119,6 +118,10 @@
                         this.$alert(res.data.msg);
                     }
                 })
+            },
+
+            Reply(){
+                this.$message.warning("请先登录"+this.userid)
             }
         },
         created() {
