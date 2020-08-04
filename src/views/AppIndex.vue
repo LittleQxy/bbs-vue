@@ -122,7 +122,6 @@
                     query:{
                         id:id,
                         type:type,
-                        userid:this.userid
                     }
                 })
             },

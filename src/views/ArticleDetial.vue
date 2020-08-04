@@ -59,6 +59,7 @@
                             type="textarea"
                             :rows="3"
                             placeholder="请输入你的评论"
+                            maxlength = "50"
                             v-model="conment">
                     </el-input>
                     <el-button type="primary"  @click="Reply">回复</el-button>
@@ -66,14 +67,89 @@
             </el-card>
         </div>
         <div style="margin-top: 50px;margin-left: 100px">
-            <el-card style="width: 900px">
+            <el-card style="width: 900px;background: rgba(248,244,244,0.23)">
                 <div slot="header" style="text-align: left">
                     <span style="font-weight: bolder;font-size: 23px">评论</span>
                 </div>
+                <ul>
+                    <li v-for="item in comments" :key="item.id" style="list-style-type: none">
+                     <el-card style="margin-top: 20px;background: azure">
+                         <div style="margin-top: 40px">
+                             <div style="position: absolute">
+                                 <el-avatar src="item.comment.avtarUrl" :size="70"></el-avatar>
+                             </div>
+                             <div style="text-align: left;margin-left: 80px">
+                                 <span style="font-size: 14px;color: cyan">{{item.comment.userName}}用户</span>
+                             </div>
+                             <div style="margin-left: 90px;text-align: left;margin-top: 10px">
+                                 <span>{{item.comment.content}}</span>
+                             </div>
+                             <div>
+                                 <div style="float: left;margin-left: 70px;margin-top: 10px">
+                                     <span style="font-size: 12px">发布于  {{item.comment.createTime}}</span>
+                                 </div>
+                                 <div style="float: right">
+                                     <el-button type="text" @click="openReply(item.comment.id)">回复()</el-button>
+                                 </div>
+                                 <div style="float: right;margin-right: 20px">
+                                     <el-button type="text">点赞 <span>({{item.comment.getLikeNum}})</span></el-button>
+                                 </div>
+                             </div>
+                         </div>
+                         <div style="margin-top: 60px">
+                             <el-divider></el-divider>
+                         </div>
+                         <ul>
+                             <li style="list-style-type: none" v-for="rep in item.list" :key="rep.id">
+                                 <div style="margin-top: 35px">
+                                     <div>
+                                         <div style="text-align: left">
+                                             <span style="color: darkred;font-size:14px">{{rep.userName}}</span>
+                                         </div>
+                                         <div v-if="rep.replyUserName != null" style="margin-left: 20px">
+                                             <span >回复</span>
+                                             <span>{{rep.replyUserName}}</span>
+                                         </div>
+                                     </div>
+                                     <div style="text-align: left;margin-left: 25px;margin-top: 10px">
+                                         <span>{{rep.content}}</span>
+                                     </div>
+                                     <div>
+                                         <div style="float: left;margin-left: 10px;margin-top: 10px">
+                                             <span style="font-size: 12px">{{rep.createTime}}</span>
+                                         </div>
+                                         <div style="float: right">
+                                             <el-button type="text" @click="openReply(item.comment.id)">回复</el-button>
+                                         </div>
+                                         <div style="float: right;margin-right: 20px">
+                                             <el-button type="text">点赞 <span>{{rep.getLikeNum}}</span></el-button>
+                                         </div>
+                                     </div>
+                                 </div>
+                                 <div style="margin-top: 40px">
+                                     <el-divider></el-divider>
+                                 </div>
+                             </li>
+
+                         </ul>
+                     </el-card>
+                    </li>
+                    <el-pagination
+                            style="float:right;"
+                            background
+                            @current-change="processCurrentChange"
+                            :current-page="page1.pageNum"
+                            :page-size="page1.pageSize"
+                            layout="total, prev, pager, next, jumper"
+                            :total="page1.total"
+                            v-if="page1.total>5"
+                    ></el-pagination>
+                </ul>
             </el-card>
         </div>
     </div>
 </template>
+
 
 <script>
     //import Vue from 'vue'
@@ -83,7 +159,7 @@
             return{
                 hotArticle:[],//用来存放相关热帖
                 newArticle:[],//用来存放最新帖子
-                comment:[],//用来存放评论
+                comments:[],//用来存放评论
                 article:{
                     id:"",
                     title:"这是详情页",
@@ -102,16 +178,38 @@
                 conment:"",
                 id:"",
                 type:"",
+                page1:{
+                    pageNum: 1,
+                    pageSize: 10,
+                    total:0
+                },
+                reply:""
             }
         },
-        methods:{
+        methods: {
+            openReply(id){
+                this.$prompt('请输入回复内容', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    inputPlaceholder: '回复。。。'
+                }).then(({ value }) => {
+                   this.reply = value;
+                   this.replyComment(id);
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '取消输入'
+                    });
+                });
+            }
+            ,
             SearchData(){
                 this.id = this.$route.query.id;
                 this.type = this.$route.query.type;
-                this.userid = this.$route.query.userid;
                 this.$axios.post('/detail/'+this.id+"/"+this.type).then(res =>{
                     if(res.data.code === 200){
                         this.article = res.data.data;
+                        this.getComment();
                         console.log(res.data.data)
                     }else {
                         console.log(res.data.msg);
@@ -121,7 +219,54 @@
             },
 
             Reply(){
-                this.$message.warning("请先登录"+this.userid)
+                if(this.conment === ""){
+                    this.$alert("请输入评论内容！！！");
+                }else{
+                    this.$axios.post('/comment',{
+                        articleId:this.article.id,
+                        articleType:this.article.articleType,
+                        content:this.conment
+                    }).then(res =>{
+                        if(res.data.code === 200){
+                            this.$alert("评论成功");
+                        }else{
+                            this.$alert("评论失败");
+                        }
+                    })
+                }
+            },
+            getComment(){
+                this.$axios.post('/replyList/'+this.article.articleType+'/'+this.article.id,{
+                    pageNum:this.page1.pageNum,
+                    pageSize:this.page1.pageSize
+                }).then(res => {
+                    if(res.data.code === 200){
+                        this.comments = res.data.data;
+                        this.page1.total = res.data.total;
+                        //this.$alert(this.comments);
+                    }else {
+                        this.$alert(res.data.msg);
+                    }
+                })
+            },
+            processCurrentChange(val) {
+                this.page.currentPage = val;
+                this.getComment();
+            },
+
+            replyComment(id){
+                this.$axios.post('/ReplyComment',{
+                    commentId:id,
+                    content:this.reply,
+                    articleId:this.article.id,
+                    articleType:this.article.articleType
+                }).then(res =>{
+                    if(res.data.code === 200){
+                        this.$message("评论成功");
+                    }else {
+                        this.$alert(res.data.msg);
+                    }
+                })
             }
         },
         created() {
