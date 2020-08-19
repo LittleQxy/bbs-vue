@@ -73,7 +73,7 @@
                 </div>
                 <ul>
                     <li v-for="item in comments" :key="item.id" style="list-style-type: none">
-                     <el-card style="margin-top: 20px;background: azure">
+                     <el-card style="margin-top: 20px">
                          <div style="margin-top: 40px">
                              <div style="position: absolute">
                                  <el-avatar src="item.comment.avtarUrl" :size="70"></el-avatar>
@@ -89,7 +89,7 @@
                                      <span style="font-size: 12px">发布于  {{item.comment.createTime}}</span>
                                  </div>
                                  <div style="float: right">
-                                     <el-button type="text" @click="openReply(item.comment.id)">回复()</el-button>
+                                     <el-button type="text" @click="openReply(item.comment.id,null)">回复()</el-button>
                                  </div>
                                  <div style="float: right;margin-right: 20px">
                                      <el-button type="text">点赞 <span>({{item.comment.getLikeNum}})</span></el-button>
@@ -102,13 +102,13 @@
                          <ul>
                              <li style="list-style-type: none" v-for="rep in item.list" :key="rep.id">
                                  <div style="margin-top: 35px">
-                                     <div>
-                                         <div style="text-align: left">
+                                     <div style="text-align: left">
+                                         <div>
                                              <span style="color: darkred;font-size:14px">{{rep.userName}}</span>
-                                         </div>
-                                         <div v-if="rep.replyUserName != null" style="margin-left: 20px">
-                                             <span >回复</span>
-                                             <span>{{rep.replyUserName}}</span>
+                                             <div v-if="rep.replyUserName != null" style="margin-left: 15px;">
+                                                 <span style="color: lime;font-size: 15px">回复</span>
+                                                 <span>{{rep.replyUserName}}</span>
+                                             </div>
                                          </div>
                                      </div>
                                      <div style="text-align: left;margin-left: 25px;margin-top: 10px">
@@ -119,7 +119,7 @@
                                              <span style="font-size: 12px">{{rep.createTime}}</span>
                                          </div>
                                          <div style="float: right">
-                                             <el-button type="text" @click="openReply(item.comment.id)">回复</el-button>
+                                             <el-button type="text" @click="openReply(item.comment.id,rep.userName)">回复</el-button>
                                          </div>
                                          <div style="float: right;margin-right: 20px">
                                              <el-button type="text">点赞 <span>{{rep.getLikeNum}}</span></el-button>
@@ -187,14 +187,14 @@
             }
         },
         methods: {
-            openReply(id){
+            openReply(id,userName){
                 this.$prompt('请输入回复内容', '提示', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
                     inputPlaceholder: '回复。。。'
                 }).then(({ value }) => {
                    this.reply = value;
-                   this.replyComment(id);
+                   this.replyComment(id,userName);
                 }).catch(() => {
                     this.$message({
                         type: 'info',
@@ -254,12 +254,13 @@
                 this.getComment();
             },
 
-            replyComment(id){
+            replyComment(id,userName){
                 this.$axios.post('/ReplyComment',{
                     commentId:id,
                     content:this.reply,
                     articleId:this.article.id,
-                    articleType:this.article.articleType
+                    articleType:this.article.articleType,
+                    replyUserName:userName
                 }).then(res =>{
                     if(res.data.code === 200){
                         this.$message("评论成功");
