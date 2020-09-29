@@ -9,6 +9,7 @@ import Lose from "./views/Lose";
 import Love from "./views/Love";
 import Market from "./views/Market";
 import User from "./views/User";
+import ArticleDetial from "./views/ArticleDetial";
 
 Vue.use(VueRouter)
 
@@ -61,6 +62,11 @@ export default new VueRouter({
                     path: "/user",
                     name: "User",
                     component: User
+                },
+                {
+                    path: "/detail",
+                    name: "ArticleDetial",
+                    component: ArticleDetial
                 }
 
             ]

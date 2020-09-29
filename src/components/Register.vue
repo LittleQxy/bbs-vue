@@ -34,6 +34,7 @@
                     email: "",
                     password: ""
                 },
+                userToken:""
             };
         },
         created() {
@@ -60,10 +61,15 @@
                                 password: this.user.password
                             })
                             .then(res => {
-                                // console.log("输出response.data", res.data);
-                                // console.log("输出response.data.status", res.data.status);
                                 if (res.data.code === 200) {
-                                    this.$router.push({ path: "/" });
+                                    this.userToken = res.data.data.token;
+                                    this.$store.commit('changeLogin',this.userToken);
+                                    this.$router.push({
+                                        name:"AppIndex",
+                                        query:{
+                                            isLogin:true
+                                        }
+                                    });
                                 } else {
                                     alert(res.data.msg);
                                 }
